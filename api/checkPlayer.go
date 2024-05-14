@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -91,6 +92,26 @@ func CheckPlayer(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	SendDiscordWebhook := func() {
+		discordWebhook := os.Getenv("DISCORD_WEBHOOK")
+		discordUsername := os.Getenv("DISCORD_USERNAME")
+		discordAvatarURL := os.Getenv("DISCORD_AVATAR")
+		discordContent := os.Getenv("DISCORD_MESSAGE")
+		discordTTS := os.Getenv("DISCORD_TTS") == "true"
+
+		var jsonBody = map[string]interface{}{
+			"username":   discordUsername,
+			"avatar_url": discordAvatarURL,
+			"content":    discordContent,
+			"tts":        discordTTS,
+		}
+		jsonStr, err := json.Marshal(jsonBody)
+		if err != nil {
+			return
+		}
+		_, _ = http.NewRequest("POST", discordWebhook, bytes.NewBuffer(jsonStr))
+	}
+	SendDiscordWebhook()
 	response["result"] = false
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
