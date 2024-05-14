@@ -102,7 +102,7 @@ func CheckPlayer(w http.ResponseWriter, r *http.Request) {
 		var jsonBody = map[string]interface{}{
 			"username":   discordUsername,
 			"avatar_url": discordAvatarURL,
-			"content":    discordContent,
+			"content":    fmt.Sprintf(discordContent, lastRewardTimestamp),
 			"tts":        discordTTS,
 		}
 		jsonStr, err := json.Marshal(jsonBody)
