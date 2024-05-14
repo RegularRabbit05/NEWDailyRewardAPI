@@ -57,10 +57,12 @@ func CheckPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentTimestamp := time.Now()
+
 	lastRewardTimestamp := int64(body["player"].(map[string]interface{})["lastClaimedReward"].(float64) / 1000)
 	// convert to time with Rome timezone
 	lastRewardTime := time.Unix(lastRewardTimestamp, 0).In(time.FixedZone("Rome", 1*60*60))
-	currentTime := time.Now().In(time.FixedZone("Rome", 1*60*60))
+	currentTime := currentTimestamp.In(time.FixedZone("Rome", 1*60*60))
 
 	// check if date is today
 	DateEqual := func(date1, date2 time.Time) bool {
@@ -71,9 +73,11 @@ func CheckPlayer(w http.ResponseWriter, r *http.Request) {
 
 	// write response
 	var response = map[string]interface{}{
-		"lastReward":  lastRewardTime.Format("2006-01-02"),
-		"currentDate": currentTime.Format("2006-01-02"),
-		"result":      true,
+		"lastRewardTimestamp": lastRewardTimestamp,
+		"currentTimestamp":    currentTimestamp.Unix(),
+		"lastReward":          lastRewardTime.Format("2006-01-02"),
+		"currentDate":         currentTime.Format("2006-01-02"),
+		"result":              true,
 	}
 	if DateEqual(lastRewardTime, currentTime) {
 		response["result"] = true
