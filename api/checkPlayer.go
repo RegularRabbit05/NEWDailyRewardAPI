@@ -102,14 +102,17 @@ func CheckPlayer(w http.ResponseWriter, r *http.Request) {
 		var jsonBody = map[string]interface{}{
 			"username":   discordUsername,
 			"avatar_url": discordAvatarURL,
-			"content":    fmt.Sprintf(discordContent, lastRewardTimestamp),
+			"content":    fmt.Sprintf(discordContent, fmt.Sprint(lastRewardTimestamp)),
 			"tts":        discordTTS,
 		}
 		jsonStr, err := json.Marshal(jsonBody)
 		if err != nil {
 			return
 		}
-		_, _ = http.NewRequest("POST", discordWebhook, bytes.NewBuffer(jsonStr))
+		req, _ = http.NewRequest("POST", discordWebhook, bytes.NewBuffer(jsonStr))
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		_, _ = client.Do(req)
 	}
 	SendDiscordWebhook()
 	response["result"] = false
