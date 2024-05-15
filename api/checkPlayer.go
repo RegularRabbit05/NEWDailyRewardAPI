@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -102,7 +103,7 @@ func CheckPlayer(w http.ResponseWriter, r *http.Request) {
 		var jsonBody = map[string]interface{}{
 			"username":   discordUsername,
 			"avatar_url": discordAvatarURL,
-			"content":    fmt.Sprintf(discordContent, fmt.Sprint(lastRewardTimestamp)),
+			"content":    strings.ReplaceAll(fmt.Sprintf(discordContent, fmt.Sprint(lastRewardTimestamp)), "\\n", "\n"),
 			"tts":        discordTTS,
 		}
 		jsonStr, err := json.Marshal(jsonBody)
