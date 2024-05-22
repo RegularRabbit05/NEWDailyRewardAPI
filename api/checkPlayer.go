@@ -79,6 +79,7 @@ func CheckPlayer(w http.ResponseWriter, r *http.Request) {
 		"currentTimestamp":    currentTimestamp.Unix(),
 		"lastReward":          lastRewardTime.Format("2006-01-02"),
 		"currentDate":         currentTime.Format("2006-01-02"),
+		"rewardStreak":        body["player"].(map[string]interface{})["totalDailyRewards"],
 		"result":              true,
 	}
 	if DateEqual(lastRewardTime, currentTime) {
