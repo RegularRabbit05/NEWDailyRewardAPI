@@ -63,43 +63,45 @@ func CheckPlayer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var leaderboardPos = -1
-	var postString = []byte(leaderboardPayload)
-	req2, err := http.NewRequest("POST", leaderboardEndpoint, bytes.NewBuffer(postString))
-	req2.Header.Set("Content-Type", "application/json")
-	if err == nil {
-		client2 := &http.Client{
-			Timeout: 30 * time.Second,
-		}
-		resp2, err := client2.Do(req2)
+	if r.URL.RawQuery == "bot=true" {
+		var postString = []byte(leaderboardPayload)
+		req2, err := http.NewRequest("POST", leaderboardEndpoint, bytes.NewBuffer(postString))
+		req2.Header.Set("Content-Type", "application/json")
 		if err == nil {
-			defer resp2.Body.Close()
-			var body2 map[string]interface{}
-			if err = json.NewDecoder(resp2.Body).Decode(&body2); err == nil {
-				switch body2["content"].(type) {
-					case string: {
-						data := body2["content"].(string)
-						data = strings.ReplaceAll(data, "&lt;\\/td&gt;&lt;td&gt;&lt;span class=\\\"mc_font\\\"&gt;&lt;a href=\\\"\\/hypixel\\/player\\/stats\\/", "")
-						splits := strings.SplitN(data, os.Getenv("PLAYER_NAME"), 2)
-						if len(splits) == 2 {
-							splits := strings.Split(splits[0], ";")
-							leaderboardPos, err = strconv.Atoi(splits[len(splits)-1])
-							if err != nil {
-								leaderboardPos = -7
+			client2 := &http.Client{
+				Timeout: 30 * time.Second,
+			}
+			resp2, err := client2.Do(req2)
+			if err == nil {
+				defer resp2.Body.Close()
+				var body2 map[string]interface{}
+				if err = json.NewDecoder(resp2.Body).Decode(&body2); err == nil {
+					switch body2["content"].(type) {
+						case string: {
+							data := body2["content"].(string)
+							data = strings.ReplaceAll(data, "&lt;\\/td&gt;&lt;td&gt;&lt;span class=\\\"mc_font\\\"&gt;&lt;a href=\\\"\\/hypixel\\/player\\/stats\\/", "")
+							splits := strings.SplitN(data, os.Getenv("PLAYER_NAME"), 2)
+							if len(splits) == 2 {
+								splits := strings.Split(splits[0], ";")
+								leaderboardPos, err = strconv.Atoi(splits[len(splits)-1])
+								if err != nil {
+									leaderboardPos = -7
+								}
+							} else {
+								leaderboardPos = -6
 							}
-						} else {
-							leaderboardPos = -6
 						}
+						default: leaderboardPos = -5
 					}
-					default: leaderboardPos = -5
+				} else {
+					leaderboardPos = -4
 				}
 			} else {
-				leaderboardPos = -4
+				leaderboardPos = -3
 			}
 		} else {
-			leaderboardPos = -3
+			leaderboardPos = -2
 		}
-	} else {
-		leaderboardPos = -2
 	}
 
 	currentTimestamp := time.Now()
