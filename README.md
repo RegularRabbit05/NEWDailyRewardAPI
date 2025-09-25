@@ -9,3 +9,6 @@ You can use this API for you own profile easily. Clone this project on [vercel](
 - DISCORD_WEBHOOK: Discord webhook link
 - API_KEY: [Hypixel API key](https://developer.hypixel.net/)
 - PLAYER_UUID: Your UUID in the "-" format, example: 8f802f1b-b19d-40b5-b36c-8ae614b20fb3
+- PLAYER_NAME: Your player name (same as UUID), example: RegularRabbit05
+- LEADERBOARD_URL: Url of the leaderboard api or website
+- LEADERBOARD_PAYLOAD: POST Body of the leaderboard website

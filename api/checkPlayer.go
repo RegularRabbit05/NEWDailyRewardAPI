@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"strconv"
 )
 
 func CheckPlayer(w http.ResponseWriter, r *http.Request) {
@@ -24,6 +25,8 @@ func CheckPlayer(w http.ResponseWriter, r *http.Request) {
 
 	playerUUID := os.Getenv("PLAYER_UUID")
 	apiKey := os.Getenv("API_KEY")
+	leaderboardEndpoint := os.Getenv("LEADERBOARD_URL")
+	leaderboardPayload := os.Getenv("LEADERBOARD_PAYLOAD")
 
 	// create request
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", playerUUID), nil)
@@ -59,6 +62,46 @@ func CheckPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var leaderboardPos = -1
+	var postString = []byte(leaderboardPayload)
+	req2, err := http.NewRequest("POST", leaderboardEndpoint, bytes.NewBuffer(postString))
+	req2.Header.Set("Content-Type", "application/json")
+	if err == nil {
+		client2 := &http.Client{
+			Timeout: 30 * time.Second,
+		}
+		resp2, err := client2.Do(req2)
+		if err == nil {
+			defer resp2.Body.Close()
+			var body2 map[string]interface{}
+			if err = json.NewDecoder(resp2.Body).Decode(&body2); err == nil {
+				switch body2["content"].(type) {
+					case string: {
+						data := body2["content"].(string)
+						data = strings.ReplaceAll(data, "&lt;\\/td&gt;&lt;td&gt;&lt;span class=\\\"mc_font\\\"&gt;&lt;a href=\\\"\\/hypixel\\/player\\/stats\\/", "")
+						splits := strings.SplitN(data, os.Getenv("PLAYER_NAME"), 2)
+						if len(splits) == 2 {
+							splits := strings.Split(splits[0], ";")
+							leaderboardPos, err = strconv.Atoi(splits[len(splits)-1])
+							if err != nil {
+								leaderboardPos = -7
+							}
+						} else {
+							leaderboardPos = -6
+						}
+					}
+					default: leaderboardPos = -5
+				}
+			} else {
+				leaderboardPos = -4
+			}
+		} else {
+			leaderboardPos = -3
+		}
+	} else {
+		leaderboardPos = -2
+	}
+
 	currentTimestamp := time.Now()
 
 	lastRewardTimestamp := int64(body["player"].(map[string]interface{})["lastClaimedReward"].(float64) / 1000)
@@ -80,6 +123,7 @@ func CheckPlayer(w http.ResponseWriter, r *http.Request) {
 		"lastReward":          lastRewardTime.Format("2006-01-02"),
 		"currentDate":         currentTime.Format("2006-01-02"),
 		"rewardStreak":        body["player"].(map[string]interface{})["rewardScore"],
+		"rewardLeaderboard":   leaderboardPos,
 		"result":              true,
 	}
 	if DateEqual(lastRewardTime, currentTime) {
